@@ -4,7 +4,6 @@ pipeline {
     environment {
         IMAGE_NAME = 'project-mobile-backend'
         CONTAINER_PORT = '5000'
-        WORKDIR = 'backend-api'
     }
 
     stages {
@@ -16,13 +15,11 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                dir("${WORKDIR}") {
-                    script {
-                        echo "🐳 Building Docker image from directory: ${pwd()}"
-                        bat """
-                        docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} -t ${IMAGE_NAME}:latest .
-                        """
-                    }
+                script {
+                    echo "🐳 Building Docker image from root directory: ${pwd()}"
+                    bat """
+                    docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} -t ${IMAGE_NAME}:latest .
+                    """
                 }
             }
         }
@@ -30,7 +27,7 @@ pipeline {
         stage('Stop Old Container') {
             steps {
                 script {
-                    echo "🛑 Checking and stopping old container if exists..."
+                    echo "🛑 Stopping old container if it exists..."
                     bat """
                     docker stop ${IMAGE_NAME} || echo No container to stop
                     docker rm ${IMAGE_NAME} || echo No container to remove
