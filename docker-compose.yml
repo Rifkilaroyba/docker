@@ -1,0 +1,20 @@
+# File: backend-api/docker-compose.yml
+
+version: '3.8'
+
+services:
+  # Nama service Anda
+  backend-service:
+    # Build image dari Dockerfile di direktori saat ini
+    build: . 
+    # Atur ulang container jika terjadi kegagalan
+    restart: always 
+    # Mapping port: 5000 di host terhubung ke 5000 di container
+    ports:
+      - "5000:5000"
+    # Mapping volume: Gunakan ini untuk pengembangan (opsional)
+    # volumes:
+    #   - .:/app
+    
+    # Nama container (opsional)
+    container_name: mobile-app-backend

@@ -1,0 +1,4 @@
+# File: backend-api/requirements.txt
+Flask
+Flask-CORS
+gunicorn # Opsional: Untuk production, tapi bagus untuk dimasukkan
