@@ -59,7 +59,19 @@ pipeline {
         }
     }
 
+    // ... (Bagian stages selesai di atas)
+
     post {
-        // ... (notifikasi sukses/gagal)
+        always {
+            // Jenkins akan selalu menjalankan ini, terlepas dari sukses/gagal
+            echo 'Pipeline selesai. Periksa status untuk detail.' 
+        }
+        success {
+            echo 'Pipeline berhasil! Deployment Docker baru telah selesai.'
+        }
+        failure {
+            echo 'Pipeline GAGAL. Periksa Console Output untuk error Docker.'
+        }
     }
+} // Penutup pipeline
 }
