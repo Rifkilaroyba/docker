@@ -47,6 +47,21 @@ pipeline {
                 }
             }
         }
+        stage('Stop Old Container') {
+    steps {
+        script {
+            echo "🛑 Checking Docker connection..."
+            bat "docker version || echo Docker not available!"
+            echo "Stopping old container if exists..."
+            bat """
+            docker ps -a
+            docker stop ${IMAGE_NAME} || echo No container to stop
+            docker rm ${IMAGE_NAME} || echo No container to remove
+            """
+        }
+    }
+}
+
     }
 
     post {
@@ -61,3 +76,4 @@ pipeline {
         }
     }
 }
+
