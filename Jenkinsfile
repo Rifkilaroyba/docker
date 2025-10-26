@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent any // Menjalankan pipeline pada node manapun
 
     environment {
         // Ganti dengan nama image yang Anda inginkan
@@ -21,11 +21,12 @@ pipeline {
             steps {
                 script {
                     echo "Membangun image Docker..."
-                    // Pindah ke direktori backend-api sebelum build
-                    dir('backend-api') {
-                        // Perintah untuk membangun image, tag menggunakan nomor build
-                        sh "docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} ."
-                    }
+                    // Perintah untuk membangun image, tag menggunakan nomor build
+                    // Perintah ini diasumsikan dijalankan di root repository, 
+                    // dan konteks build menunjuk ke folder backend-api
+                    sh "docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} ./backend-api"
+                    // CATATAN: Jika langkah di atas gagal, coba ganti dengan:
+                    // sh "cd backend-api && docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} ."
                 }
             }
         }
@@ -59,8 +60,6 @@ pipeline {
         }
     }
 
-    // ... (Bagian stages selesai di atas)
-
     post {
         always {
             // Jenkins akan selalu menjalankan ini, terlepas dari sukses/gagal
@@ -73,5 +72,4 @@ pipeline {
             echo 'Pipeline GAGAL. Periksa Console Output untuk error Docker.'
         }
     }
-} // Penutup pipeline
-}
+} // <--- Kurung kurawal penutup ini adalah yang terakhir dan harus ada.
