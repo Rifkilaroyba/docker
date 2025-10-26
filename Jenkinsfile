@@ -42,13 +42,15 @@ pipeline {
             }
         }
 
-        stage('Stop Old Container') {
+                stage('Stop Old Container') {
             steps {
                 script {
                     echo "🛑 Stopping old container if exists..."
                     bat """
                     docker stop ${IMAGE_NAME} || echo No container to stop
                     docker rm ${IMAGE_NAME} || echo No container to remove
+                    echo Waiting 5 seconds for port ${CONTAINER_PORT} to be released...
+                    timeout /t 5 /nobreak >nul
                     """
                 }
             }
@@ -58,7 +60,13 @@ pipeline {
             steps {
                 script {
                     echo "🚀 Running new container..."
+                    // Cek dulu apakah port masih dipakai
                     bat """
+                    netstat -ano | find ":${CONTAINER_PORT}" >nul
+                    if %ERRORLEVEL%==0 (
+                        echo ⚠️ Port ${CONTAINER_PORT} masih dipakai, menunggu 5 detik...
+                        timeout /t 5 /nobreak >nul
+                    )
                     docker run -d -p ${CONTAINER_PORT}:${CONTAINER_PORT} --name ${IMAGE_NAME} ${IMAGE_NAME}:${BUILD_NUMBER}
                     """
                     echo "✅ Container is running on port ${CONTAINER_PORT}"
@@ -79,3 +87,4 @@ pipeline {
         }
     }
 }
+
