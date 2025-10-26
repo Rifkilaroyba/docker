@@ -31,10 +31,13 @@ pipeline {
                     bat """
                     echo Checking containers using port ${CONTAINER_PORT}...
                     docker ps --format "{{.ID}} {{.Ports}}" | find "0.0.0.0:${CONTAINER_PORT}->" > temp.txt || echo none > temp.txt
+
                     for /F "tokens=1" %%i in (temp.txt) do (
-                        echo Stopping container ID %%i
-                        docker stop %%i
-                        docker rm %%i
+                        if NOT "%%i"=="none" (
+                            echo Stopping container ID %%i
+                            docker stop %%i
+                            docker rm %%i
+                        )
                     )
                     del temp.txt
                     """
@@ -42,7 +45,7 @@ pipeline {
             }
         }
 
-                stage('Stop Old Container') {
+        stage('Stop Old Container') {
             steps {
                 script {
                     echo "🛑 Stopping old container if exists..."
@@ -50,7 +53,7 @@ pipeline {
                     docker stop ${IMAGE_NAME} || echo No container to stop
                     docker rm ${IMAGE_NAME} || echo No container to remove
                     echo Waiting 5 seconds for port ${CONTAINER_PORT} to be released...
-                    timeout /t 5 /nobreak >nul
+                    powershell -Command "Start-Sleep -Seconds 5"
                     """
                 }
             }
@@ -60,16 +63,20 @@ pipeline {
             steps {
                 script {
                     echo "🚀 Running new container..."
-                    // Cek dulu apakah port masih dipakai
                     bat """
+                    echo Checking if port ${CONTAINER_PORT} is in use...
                     netstat -ano | find ":${CONTAINER_PORT}" >nul
                     if %ERRORLEVEL%==0 (
-                        echo ⚠️ Port ${CONTAINER_PORT} masih dipakai, menunggu 5 detik...
-                        timeout /t 5 /nobreak >nul
+                        echo ⚠️ Port ${CONTAINER_PORT} still in use. Waiting 5 seconds...
+                        powershell -Command "Start-Sleep -Seconds 5"
                     )
+
+                    echo Starting new container...
                     docker run -d -p ${CONTAINER_PORT}:${CONTAINER_PORT} --name ${IMAGE_NAME} ${IMAGE_NAME}:${BUILD_NUMBER}
+
+                    echo ✅ Container started successfully.
+                    docker ps --filter "name=${IMAGE_NAME}"
                     """
-                    echo "✅ Container is running on port ${CONTAINER_PORT}"
                 }
             }
         }
@@ -87,4 +94,3 @@ pipeline {
         }
     }
 }
-
