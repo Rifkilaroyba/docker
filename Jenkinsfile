@@ -27,13 +27,16 @@ pipeline {
         stage('Free Used Port') {
             steps {
                 script {
-                    echo "🧹 Checking if any container is using port ${CONTAINER_PORT}..."
+                    echo "🧹 Checking if any container uses port ${CONTAINER_PORT}..."
                     bat """
-                    for /f "tokens=1" %%i in ('docker ps -q --filter "publish=${CONTAINER_PORT}"') do (
-                        echo ⚠️ Stopping container using port ${CONTAINER_PORT} (ID=%%i)...
+                    echo Checking containers using port ${CONTAINER_PORT}...
+                    docker ps --format "{{.ID}} {{.Ports}}" | find "0.0.0.0:${CONTAINER_PORT}->" > temp.txt || echo none > temp.txt
+                    for /F "tokens=1" %%i in (temp.txt) do (
+                        echo Stopping container ID %%i
                         docker stop %%i
                         docker rm %%i
                     )
+                    del temp.txt
                     """
                 }
             }
