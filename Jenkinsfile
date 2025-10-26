@@ -11,7 +11,6 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 echo "🔄 Starting code checkout..."
-                // Secara default Jenkins akan checkout otomatis, jadi cukup echo
             }
         }
 
@@ -20,12 +19,7 @@ pipeline {
                 dir("${WORKDIR}") {
                     script {
                         echo "🐳 Building Docker image from directory: ${pwd()}"
-                        
-                        // Hapus image lama jika ada (optional)
-                        sh "docker rmi ${IMAGE_NAME}:latest || true"
-                        
-                        // Build image dengan dua tag: BUILD_NUMBER dan latest
-                        sh """
+                        bat """
                         docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} -t ${IMAGE_NAME}:latest .
                         """
                     }
@@ -37,14 +31,9 @@ pipeline {
             steps {
                 script {
                     echo "🛑 Checking and stopping old container if exists..."
-                    // Stop dan remove container jika sedang berjalan
-                    sh """
-                    if [ \$(docker ps -q -f name=${IMAGE_NAME}) ]; then
-                        docker stop ${IMAGE_NAME}
-                    fi
-                    if [ \$(docker ps -aq -f name=${IMAGE_NAME}) ]; then
-                        docker rm ${IMAGE_NAME}
-                    fi
+                    bat """
+                    docker stop ${IMAGE_NAME} || echo No container to stop
+                    docker rm ${IMAGE_NAME} || echo No container to remove
                     """
                 }
             }
@@ -54,11 +43,8 @@ pipeline {
             steps {
                 script {
                     echo "🚀 Running new container..."
-                    sh """
-                    docker run -d \
-                        -p ${CONTAINER_PORT}:${CONTAINER_PORT} \
-                        --name ${IMAGE_NAME} \
-                        ${IMAGE_NAME}:${BUILD_NUMBER}
+                    bat """
+                    docker run -d -p ${CONTAINER_PORT}:${CONTAINER_PORT} --name ${IMAGE_NAME} ${IMAGE_NAME}:${BUILD_NUMBER}
                     """
                     echo "✅ Container is running on port ${CONTAINER_PORT}"
                 }
