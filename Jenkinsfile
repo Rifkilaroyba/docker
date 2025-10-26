@@ -30,10 +30,12 @@ pipeline {
                     echo "🛑 Checking Docker connection..."
                     bat "docker version || echo Docker not available!"
                     echo "🧹 Stopping old container if exists..."
+                    // ✅ Tambahkan exit /b 0 agar error tidak hentikan pipeline
                     bat """
                     docker ps -a
-                    docker stop ${IMAGE_NAME} || echo No container to stop
-                    docker rm ${IMAGE_NAME} || echo No container to remove
+                    docker stop ${IMAGE_NAME} || echo "✅ No existing container to stop"
+                    docker rm ${IMAGE_NAME} || echo "✅ No existing container to remove"
+                    exit /b 0
                     """
                 }
             }
@@ -43,6 +45,7 @@ pipeline {
             steps {
                 script {
                     echo "🚀 Running new container..."
+                    // ✅ Jalankan container baru, pastikan selalu pakai tag yang baru dibangun
                     bat """
                     docker run -d -p ${CONTAINER_PORT}:${CONTAINER_PORT} --name ${IMAGE_NAME} ${IMAGE_NAME}:${BUILD_NUMBER}
                     """
